@@ -74,13 +74,29 @@ if __name__ == "__main__":
     entropy = calculate_entropy(sumx,sumy)
     print("DATA1: %f" % entropy)
 
+    for i in range(d1.get_num_of_columns()-1):
+        x,y = d1.get_column_information(i)
+        entropy = calculate_entropy(x,y)
+        print("D1 column %i: %f" % (i,entropy))
+
     sumx,sumy = d2.get_column_information(-1)
     entropy = calculate_entropy(sumx,sumy)
     print("DATA2: %f" % entropy)
 
+    for i in range(d2.get_num_of_columns()-1):
+        x,y = d2.get_column_information(i)
+        entropy = calculate_entropy(x,y)
+        print("D2 column %i: %f" % (i,entropy))
+
     sumx,sumy = d3.get_column_information(-1)
     entropy = calculate_entropy(sumx,sumy)
     print("DATA3: %f" % entropy)
+
+
+    for i in range(d3.get_num_of_columns()-1):
+        x,y = d3.get_column_information(i)
+        entropy = calculate_entropy(x,y)
+        print("D3 column %i: %f" % (i,entropy))
 
     #get all the entropy for the entier system
     sumx = 0
@@ -96,6 +112,8 @@ if __name__ == "__main__":
 
     entropy = calculate_entropy(sumx,sumy)
     print("ALL: %f" % entropy)
+
+
 
     d1.print_data()
     d2.print_data()
