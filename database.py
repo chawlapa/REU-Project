@@ -141,6 +141,10 @@ def update_dict(rDict,temp_dict):
             rDict[key] += value
         return rDict
 
+def get_letter(value):
+    return chr(value + 65)
+
+
 if __name__ == "__main__":
 
     #create teh database objects
@@ -197,10 +201,10 @@ if __name__ == "__main__":
         if maxgain[1] < weighted_avg-main_entropy:
             maxgain[0] = i
             maxgain[1] = weighted_avg-main_entropy
-        print("weighted average for column %i: %f" % (i,weighted_avg))
-        print("The gain is: %f\n" % (weighted_avg-main_entropy))
-    print("column %i give the maxgain: %f" % (maxgain[0],maxgain[1]))
-        
+        #print("weighted average for column %i: %f" % (i,weighted_avg))
+        #print("The gain is: %f\n" % (weighted_avg-main_entropy))
+        print("column %s give the maxgain: %f" % (get_letter(maxgain[0]),maxgain[1]))
+
         
     
 
