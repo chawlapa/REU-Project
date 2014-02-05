@@ -13,10 +13,11 @@ class Database():
          Inputs: a string for the text file
          Output: the Database object
     '''
-    def __init__(self,filename):
+    def __init__(self,filename=None):
         #self.name = name
         self.data = [] #this will be a 2D matrix
-        self.populate_data(filename)
+        if filename != None:
+            self.populate_data(filename)
 
     '''  --------get_sum_of_column--------
          returns the total amount of x and y for a certain column
@@ -29,9 +30,9 @@ class Database():
         retY = 0
         for i in range(len(self.data)):
             if self.data[i][len(self.data[0])-1] == 1:
-                retX += int(self.data[i][column])
+                retX += 1#int(self.data[i][column])
             else:
-                retY += int(self.data[i][column])
+                retY += 1#int(self.data[i][column])
 
         return (retX,retY)
 
@@ -64,6 +65,12 @@ class Database():
     def get_num_of_columns(self):
         return len(self.data[0])
 
+    def get_num_of_rows(self):
+        return len(self.data)
+
+    def get_class_of_row(self,row):
+        return self.data[row][-1]
+
     '''  --------populate_data--------
          loads the data into the data attribute from the data file
          Inputs: a string for the text file
@@ -83,6 +90,12 @@ class Database():
                     self.data.append(temp)
         except Exception as err:
             print(err)
+
+    def add_row(self,row):
+        self.data.append(row)
+
+    def get_row(self,row):
+        return self.data[row]
 
     '''  --------print_data--------
          prints the data that is contained in the database
@@ -110,71 +123,105 @@ if __name__ == "__main__":
     d2 = Database("dataset2.txt")
     d3 = Database("dataset3.txt")
 
+    d1.print_data()
+    d2.print_data()
+    d3.print_data()
+
+    databases = [d1,d2,d3]
     #calculate entropy
     sumy = 0
     sumz = 0
     #get all the sumy and sumz
-
-    #calculate the entropy of D1
-    sumx,sumy = d1.get_column_information(-1)
-    entropy = calculate_entropy(sumx,sumy)
-    print("DATA1: %f" % entropy)
-
-    #Calculate the entropy for each column in the database
-    for i in range(d1.get_num_of_columns()-1):
-        x,y = d1.get_column_information(i)
-        entropy = calculate_entropy(x,y)
-        print("D1 column %i: %f" % (i,entropy))
-
-    #calculate the entropy of D2
-    sumx,sumy = d2.get_column_information(-1)
-    entropy = calculate_entropy(sumx,sumy)
-    print("DATA2: %f" % entropy)
-
-    #Calculate the entropy for each column in the database
-    for i in range(d2.get_num_of_columns()-1):
-        x,y = d2.get_column_information(i)
-        entropy = calculate_entropy(x,y)
-        print("D2 column %i: %f" % (i,entropy))
-
-    #calculate the entropy of D3
-    sumx,sumy = d3.get_column_information(-1)
-    entropy = calculate_entropy(sumx,sumy)
-    print("DATA3: %f" % entropy)
-
-    #Calculate the entropy for each column in the database
-    for i in range(d3.get_num_of_columns()-1):
-        x,y = d3.get_column_information(i)
-        entropy = calculate_entropy(x,y)
-        print("D3 column %i: %f" % (i,entropy))
-
-    #get all the entropy for the entier system
-    sumx = 0
-    sumy = 0
-    databases = [d1,d2,d3]
     print(d1.get_num_of_columns())
-    for i in range(d1.get_num_of_columns()-1): #<-- this assumes all the databases have the same size
-        tempx = 0
-        tempy = 0
+    for database in databases:
+        y,z = database.get_column_information(database.get_num_of_columns()-1)
+        sumy += y
+        sumz += z
+    main_entropy = calculate_entropy(sumy,sumz)
+    print("entropy: %f" % main_entropy)
+
+    #first level of entropy
+    maxgain = (-1,-1)
+    for i in range(d1.get_num_of_columns()-2): #this will go through columns a,b,c,....
+        #construct virtual databases
+        tempd1 = Database()
+        tempd2 = Database()
+        temp_databases = [tempd1,tempd2]
         for database in databases:
-            x,y = database.get_sum_of_column(i)
-            sumx += x
-            sumy += y
-            tempx += x
-            tempy += y
-        entropy = calculate_entropy(tempx,tempy)
-        print("ALL column %i: %f" % (i,entropy))
-            
-    #Entropy of the entire system
-    entropy = calculate_entropy(sumx,sumy)
-    print("ALL: %f" % entropy)
+            for row in range(database.get_num_of_rows()):
+                if database.get_class_of_row(row) == 1:
+                    tempd1.add_row(database.get_row(row))
+                else:
+                    tempd2.add_row(database.get_row(row))
+        tempd1.print_data()
+        tempd2.print_data()
+        
+        #get entropy of the database
+        for tdata in temp_databases:
+            #how do we get the entropy when we only have 1s and 0s?
+            y,z = tdata.get_column_information(database.get_num_of_columns()-1)
+            temp_entropy = calculate_entropy(y, z)
+            print("temp_entropy: %f" % temp_entropy)
+    
+
+##    #calculate the entropy of D1
+##    sumx,sumy = d1.get_column_information(-1)
+##    entropy = calculate_entropy(sumx,sumy)
+##    print("DATA1: %f" % entropy)
+##
+##    #Calculate the entropy for each column in the database
+##    for i in range(d1.get_num_of_columns()-1):
+##        x,y = d1.get_column_information(i)
+##        entropy = calculate_entropy(x,y)
+##        print("D1 column %i: %f" % (i,entropy))
+##
+##    #calculate the entropy of D2
+##    sumx,sumy = d2.get_column_information(-1)
+##    entropy = calculate_entropy(sumx,sumy)
+##    print("DATA2: %f" % entropy)
+##
+##    #Calculate the entropy for each column in the database
+##    for i in range(d2.get_num_of_columns()-1):
+##        x,y = d2.get_column_information(i)
+##        entropy = calculate_entropy(x,y)
+##        print("D2 column %i: %f" % (i,entropy))
+##
+##    #calculate the entropy of D3
+##    sumx,sumy = d3.get_column_information(-1)
+##    entropy = calculate_entropy(sumx,sumy)
+##    print("DATA3: %f" % entropy)
+##
+##    #Calculate the entropy for each column in the database
+##    for i in range(d3.get_num_of_columns()-1):
+##        x,y = d3.get_column_information(i)
+##        entropy = calculate_entropy(x,y)
+##        print("D3 column %i: %f" % (i,entropy))
+##
+##    #get all the entropy for the entier system
+##    sumx = 0
+##    sumy = 0
+##    databases = [d1,d2,d3]
+##    print(d1.get_num_of_columns())
+##    for i in range(d1.get_num_of_columns()-1): #<-- this assumes all the databases have the same size
+##        tempx = 0
+##        tempy = 0
+##        for database in databases:
+##            x,y = database.get_sum_of_column(i)
+##            sumx += x
+##            sumy += y
+##            tempx += x
+##            tempy += y
+##        entropy = calculate_entropy(tempx,tempy)
+##        print("ALL column %i: %f" % (i,entropy))
+##            
+##    #Entropy of the entire system
+##    entropy = calculate_entropy(sumx,sumy)
+##    print("ALL: %f" % entropy)
+##
+##
+##            
+##
 
 
-            
-
-
-
-    d1.print_data()
-    d2.print_data()
-    d3.print_data()
+    
     
