@@ -19,6 +19,7 @@ class Database():
         if filename != None:
             self.populate_data(filename)
 
+
     '''  --------get_sum_of_column--------
          returns the total amount of x and y for a certain column
          Inputs: column integer
@@ -26,15 +27,20 @@ class Database():
          Note: This should only be called from get_coloumn_information
     '''
     def get_sum_of_column(self,column):
-        retX = 0
-        retY = 0
+        keys = []
         for i in range(len(self.data)):
-            if self.data[i][len(self.data[0])-1] == 1:
-                retX += 1#int(self.data[i][column])
-            else:
-                retY += 1#int(self.data[i][column])
+            if self.data[i][column] not in keys:
+                keys.append(self.data[i][column])
 
-        return (retX,retY)
+        rDict = dict.fromkeys(keys)
+
+        for i in range(len(self.data)):
+            if rDict.get(self.data[i][column]) == None:
+                rDict[self.data[i][column]] = 1
+            else:
+                rDict[self.data[i][column]] += 1
+
+        return (rDict)
 
     '''  --------get_column_information--------
          Called from the outside to get values for a specific column
@@ -45,14 +51,17 @@ class Database():
     def get_column_information(self,column):
         #if colukmn is -1, then we want to get all of the information
         # else we just get that columns attributes
-        x = 0
-        y = 0
+        rDict = None
+        
         if column == -1:
             for i in range(len(self.data[0])-1):
-                values = self.get_sum_of_column(i)
-                x += values[0]
-                y += values[1]
-            return (x,y)
+                temp_dict = self.get_sum_of_column(i)
+                if rDict == None:
+                    rDict = temp_dict
+                else:
+                    for key,value in temp_dict.items():
+                        rDict[key] += value
+            return (rDict)
         else:
             return self.get_sum_of_column(column)
 
@@ -113,8 +122,24 @@ class Database():
      Inputs: the x and y value
      Output: The entropy as a float
 '''
-def calculate_entropy(y,z):
-    return( ((y)/(y+z))*math.log((y)/(y+z)) + ((z)/(y+z))*math.log((z)/(y+z))) *-1
+def calculate_entropy(entropy_dict):
+    total = 0
+    for key,value in entropy_dict.items():
+        total += value
+    entropy = 0
+    for key,value in entropy_dict.items():
+        entropy += ((value/total)*(math.log(value/total)))
+    
+    #return( ((x)/(x+y+z))*math.log((x)/(x+y+z)) + ((y)/(x+y+z))*math.log((y)/(x+y+z)) + ((z)/(x+y+z))*math.log((z)/(x+y+z))) *-
+    return (entropy * -1)
+
+def update_dict(rDict,temp_dict):
+    if rDict == None:
+        return temp_dict
+    else:
+        for key,value in temp_dict.items():
+            rDict[key] += value
+        return rDict
 
 if __name__ == "__main__":
 
@@ -129,20 +154,18 @@ if __name__ == "__main__":
 
     databases = [d1,d2,d3]
     #calculate entropy
-    sumy = 0
-    sumz = 0
+    entropy_dict = None
     #get all the sumy and sumz
     print(d1.get_num_of_columns())
     for database in databases:
-        y,z = database.get_column_information(database.get_num_of_columns()-1)
-        sumy += y
-        sumz += z
-    main_entropy = calculate_entropy(sumy,sumz)
+        temp_dict = database.get_column_information(database.get_num_of_columns()-1)
+        entropy_dict = update_dict(entropy_dict,temp_dict)
+    main_entropy = calculate_entropy(entropy_dict)
     print("entropy: %f" % main_entropy)
 
     #first level of entropy
     maxgain = (-1,-1)
-    for i in range(d1.get_num_of_columns()-2): #this will go through columns a,b,c,....
+    for i in range(d1.get_num_of_columns()-1): #this will go through columns a,b,c,....
         #construct virtual databases
         tempd1 = Database()
         tempd2 = Database()
@@ -153,15 +176,27 @@ if __name__ == "__main__":
                     tempd1.add_row(database.get_row(row))
                 else:
                     tempd2.add_row(database.get_row(row))
-        tempd1.print_data()
-        tempd2.print_data()
+        #tempd1.print_data()
+        #tempd2.print_data()
         
         #get entropy of the database
+        entropy_dict = None
+        results = []
+        total_records = tempd1.get_num_of_rows() + tempd2.get_num_of_rows()
+        
         for tdata in temp_databases:
             #how do we get the entropy when we only have 1s and 0s?
-            y,z = tdata.get_column_information(database.get_num_of_columns()-1)
-            temp_entropy = calculate_entropy(y, z)
-            print("temp_entropy: %f" % temp_entropy)
+            temp_dict = tdata.get_column_information(i)
+            entropy_dict = update_dict(entropy_dict,temp_dict)
+            temp_entropy = calculate_entropy(entropy_dict)
+            ratio = float(tdata.get_num_of_rows()/total_records)
+            results.append(temp_entropy*ratio)
+        weighted_avg = 0
+        for items in results:
+            weighted_avg += items
+        print("weighted average for column %i: %f" % (i,weighted_avg))
+        
+        
     
 
 ##    #calculate the entropy of D1
