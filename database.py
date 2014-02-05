@@ -201,9 +201,9 @@ if __name__ == "__main__":
         if maxgain[1] < weighted_avg-main_entropy:
             maxgain[0] = i
             maxgain[1] = weighted_avg-main_entropy
-        #print("weighted average for column %i: %f" % (i,weighted_avg))
-        #print("The gain is: %f\n" % (weighted_avg-main_entropy))
-        print("column %s give the maxgain: %f" % (get_letter(maxgain[0]),maxgain[1]))
+        #print("weighted average -main entropy for column %i: %f" % (i,weighted_avg))
+        print("The gain for column %s:  %f\n"% (get_letter(i),weighted_avg-main_entropy))
+print("column %s give the maxgain: %f" % (get_letter(maxgain[0]),maxgain[1]))
 
         
     
