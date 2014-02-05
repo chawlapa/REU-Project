@@ -164,7 +164,7 @@ if __name__ == "__main__":
     print("entropy: %f" % main_entropy)
 
     #first level of entropy
-    maxgain = (-1,-1)
+    maxgain = [-1,-1]
     for i in range(d1.get_num_of_columns()-1): #this will go through columns a,b,c,....
         #construct virtual databases
         tempd1 = Database()
@@ -194,7 +194,12 @@ if __name__ == "__main__":
         weighted_avg = 0
         for items in results:
             weighted_avg += items
+        if maxgain[1] < weighted_avg-main_entropy:
+            maxgain[0] = i
+            maxgain[1] = weighted_avg-main_entropy
         print("weighted average for column %i: %f" % (i,weighted_avg))
+        print("The gain is: %f\n" % (weighted_avg-main_entropy))
+    print("column %i give the maxgain: %f" % (maxgain[0],maxgain[1]))
         
         
     
