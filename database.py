@@ -23,6 +23,11 @@ class Database():
             self.populate_data(filename)
         self.name = name
 
+    '''  --------is_empty--------
+         called to make sure the database has data
+         Inputs: none
+         Output: boolean value if there is data or not
+    '''
     def is_empty(self):
         if self.data == []:
             return True
@@ -31,42 +36,35 @@ class Database():
 
     '''  --------get_sum_of_column--------
          returns the total amount of x and y for a certain column
-         Inputs: column integer
+         Inputs: column integer and a search criteria list
          Output: a pair of x and y values
          Note: This should only be called from get_coloumn_information
     '''
     def get_sum_of_column(self,column,criteria):
         keys = []
-        #self.print_data()
         for i in range(len(self.data)):
-            #print("self.data[%i][%i]: %i" % (i,column,self.data[i][column]))
             if self.data[i][column] not in keys:
                 keys.append(self.data[i][column])
 
         rDict = dict.fromkeys(keys)
-        #print("rDict before: ",rDict)
         for i in range(len(self.data)):
             #check the criteria on the row
             increment = True
             for j in range(len(criteria)):
-                #print("criteria[%i]: %i" % (j,criteria[j]))
-                #print("self.data[%i][%i]: %i" % (i,j,self.data[i][j]))
                 if criteria[j] != -1 and criteria[j] != self.data[i][j]:
                     increment = False
-        #            print('criteria: ',criteria)
-        #            print("row: %i | column: %i" % (i,j))
             if increment:
                 if rDict.get(self.data[i][column]) == None:
                     rDict[self.data[i][column]] = 1
                 else:
                     rDict[self.data[i][column]] += 1
-        #print("rDict after: ",rDict)
         return (rDict)
 
     '''  --------get_column_information--------
          Called from the outside to get values for a specific column
          Inputs: a column value.  if a -1 is passed it in, it will get
                  infomration from the entire database
+                 also need to pass in a search criteria array
          Output: a pair of x and y values
     '''
     def get_column_information(self,column,criteria):
@@ -86,6 +84,11 @@ class Database():
         else:
             return self.get_sum_of_column(column,criteria)
 
+    '''  --------get_column_unique_ident--------
+         returns length of unique keys in a column
+         Inputs: column and search criteria
+         Output: the length
+    '''
     def get_column_unique_ident(self,column,criteria):
         rDict = self.get_sum_of_column(column,criteria)
         return len(rDict)
@@ -94,14 +97,24 @@ class Database():
          returns the number of attributes + 1
          Inputs: None
          Output: the number of attributes
-         Note: Make sure you take the value and subtract by 1
+         Note: Make sure you take the value and subtract by 1 if you don't want the last column
     '''
     def get_num_of_columns(self):
         return len(self.data[0])
 
+    '''  --------get_num_of_rows--------
+         returns the number of rows
+         Inputs: None
+         Output: the number of rows
+    '''
     def get_num_of_rows(self):
         return len(self.data)
 
+    '''  --------get_class_of_row--------
+         returns the class of the row
+         Inputs: row
+         Output: the class
+    '''
     def get_class_of_row(self,row):
         return self.data[row][-1]
 
@@ -125,12 +138,27 @@ class Database():
         except Exception as err:
             print(err)
 
+    '''  --------add_row--------
+         add row to the data base
+         Inputs: row
+         Output: None
+    '''
     def add_row(self,row):
         self.data.append(row)
 
+    '''  --------get_class_of_row--------
+         returns the row from the database
+         Inputs: row number
+         Output: the row
+    '''
     def get_row(self,row):
         return self.data[row]
 
+    '''  --------get_value_from_database--------
+         returns the value from the database
+         Inputs: row and column
+         Output: the value
+    '''
     def get_value_from_database(self,row,column):
         return self.data[row][column]
 
@@ -145,6 +173,11 @@ class Database():
             print(item)
         print('------------')
 
+'''------END OF DATABASE CLASS-----------'''
+
+
+
+
 '''  --------calculate_entropy--------
      Calculates the entropy from the pair of values
      Inputs: the x and y value
@@ -152,20 +185,21 @@ class Database():
 '''
 def calculate_entropy(entropy_dict):
     total = 0
-    #print("entropy_dict: ",entropy_dict)
     for key,value in entropy_dict.items():
         if value != None:
             total += value
     entropy = 0
     for key,value in entropy_dict.items():
-        if value == None:
-            #print("skipping value: ",value) 
+        if value == None: 
             continue
         entropy += ((value/total)*(math.log(value/total)))
-    
-    #return( ((x)/(x+y+z))*math.log((x)/(x+y+z)) + ((y)/(x+y+z))*math.log((y)/(x+y+z)) + ((z)/(x+y+z))*math.log((z)/(x+y+z))) *-
     return (entropy * -1)
 
+'''  --------update_dict--------
+     Joins two dictionaries
+     Inputs: the x and y value
+     Output: The entropy as a float
+'''
 def update_dict(rDict,temp_dict):
     if rDict == None:
         return temp_dict
@@ -179,9 +213,20 @@ def update_dict(rDict,temp_dict):
                 rDict[key] += value
         return rDict
 
+'''  --------get_letter--------
+     Gives the letter for the interger given
+     Inputs: a value
+     Output: a letter
+     Note: This will not work for letters abouve 26.  This needs to be fixed
+'''
 def get_letter(value):
     return chr(value + 65)
 
+'''  --------get_num_of_nodes--------
+     Gives the number of nodes that should be spawned from the data set
+     Inputs: the databases, column that spawns data and search criteria
+     Output: the numebr of nodes
+'''
 def get_num_of_nodes(databases,column,criteria):
     num_of_nodes = 0
     for database in databases:
@@ -190,57 +235,66 @@ def get_num_of_nodes(databases,column,criteria):
             num_of_nodes = num
     return num_of_nodes
 
+'''  --------populate_database--------
+     Puts information into a database off of the search criteria
+     Inputs: the databases and search criteria
+     Output: the database
+'''
 def populate_database(databases,criteria):
     temp_database = Database('temp_database')
     for database in databases:
         for row in range(database.get_num_of_rows()):
-            #print(database.get_row(row))
             add_row = True
             for j in range(len(criteria)):
-                #print("criteria[j] != -1: ",criteria[j] != -1)
                 if criteria[j] != -1 and criteria[j] != database.get_value_from_database(row,j):
-                #    print("passing")
                     add_row = False
                     break
             if add_row:
-                #print("adding: ",database.get_row(row))
                 temp_database.add_row(database.get_row(row))
     return temp_database
 
+'''  --------populate_temp_databases--------
+     Creates all the node databases give the column to spawn and serach criteria
+     Inputs: the databases, temp_databases, column to spawn off of and search criteria
+     Output: the temporary databases
+'''
 def populate_temp_databases(databases,temp_databases,column,criteria):
     #this will need to be update to place items nicer
     for database in databases:
         for row in range(database.get_num_of_rows()):
             add_row = True
-            #print("criteria: ", criteria)
             for j in range(len(criteria)):
-                #print("criteria[%i]: %i" % (j,criteria[j]))
-                #print("database.get_value_from_database(%i,%i): %i" % (row,j,database.get_value_from_database(row,j)))
                 if criteria[j] != -1 and criteria[j] != database.get_value_from_database(row,j) and j != column:
-                    #print("passing...")
                     add_row = False
                     break
-                    
             if add_row:
-                #print("adding: ", database.get_row(row))
                 if database.get_value_from_database(row,column) == 1:
                     temp_databases[0].add_row(database.get_row(row))
                 elif database.get_value_from_database(row,column) == 2:
                     temp_databases[1].add_row(database.get_row(row))
                 elif database.get_value_from_database(row,column) == 3:
                     temp_databases[2].add_row(database.get_row(row))
-    #for tdata in temp_databases:
-    #    tdata.print_data()
     return temp_databases
 
+'''  --------get_answer--------
+     Gives the answer to the class of the database
+     Inputs: the dictionary containg the database classes
+     Output: the answer
+'''
 def get_answer(dictionary):
     if 1 in dictionary:
         return "Yes"
     elif 0 in dictionary:
         return "No"
-#sorted_columns is a binary array.  if 1 don't touch, it has been sorted
-#          if it is a 0 then it hasn't been sorted
-def create_databases(criteria, databases, sorted_columns, main_entropy,path):#databases,columns,master_databases,total_records,sorted_columns):
+    
+
+'''  --------id3_distributed--------
+     recursive function that splits the databases and does the heavy lifting
+     Inputs: the search criteria, the databases, the list to keep track of which columns have been spawned, the
+             main_entropy, and the search path
+     Output: None
+'''
+def id3_distributed(criteria, databases, sorted_columns, main_entropy,path):#databases,columns,master_databases,total_records,sorted_columns):
     #we want to check the last values give our search tree criteria
     #more to come
     classes = None
@@ -282,8 +336,10 @@ def create_databases(criteria, databases, sorted_columns, main_entropy,path):#da
     temp_databases = populate_temp_databases(databases,temp_databases,best_column,criteria)
     for i in range(len(temp_databases)):
         print('\n--------------')
-          
-        path += ("Column: %s Attribute: %i -> " % (get_letter(best_column),i+1))
+
+        temp_path = copy.deepcopy(path)
+        temp_path += ("Column: %s Attribute: %i -> " % (get_letter(best_column),i+1))
+        
         print("When Column %s = %i" % (get_letter(best_column),i+1))
       
         print("going to option %i on columns %s" %(i+1,get_letter(best_column)))
@@ -291,8 +347,13 @@ def create_databases(criteria, databases, sorted_columns, main_entropy,path):#da
         temp_criteria = copy.deepcopy(criteria)
         temp_criteria[best_column] = i+1
         
-        create_databases(temp_criteria,databases,temp_sorted_columns,main_entropy,path)
-    
+        id3_distributed(temp_criteria,databases,temp_sorted_columns,main_entropy,temp_path)
+
+'''  --------select_next_best_attribute--------
+     gives the best attribute that you should sort off of given parameters
+     Inputs: the databses, list of columns that you can spawn off of, the main entropy, and the search criteria
+     Output: the column to spawn off of
+'''    
 def select_next_best_attribute(databases,selected_columns,main_entropy,criteria):
 
     maxgain = [-1,-1]
@@ -327,21 +388,21 @@ if __name__ == "__main__":
     d2 = Database("d2","dataset2.txt")
     d3 = Database("d3","dataset3.txt")
 
+    #show all of the information in the databases
     d1.print_data()
     d2.print_data()
     d3.print_data()
 
+    #put the databases in a list
     databases = [d1,d2,d3]
 
+    #create a list that keeps track of which columns have been selected to splpit off of
     sorted_columns = []
     for i in range(d1.get_num_of_columns()-1):
         sorted_columns.append(-1)
-    #print(sorted_columns)
     
     #calculate entropy
     entropy_dict = None
-    #get all the sumy and sumz
-    #print(d1.get_num_of_columns())
     total_records = 0
     for database in databases:
         total_records += database.get_num_of_rows()
@@ -349,6 +410,7 @@ if __name__ == "__main__":
         entropy_dict = update_dict(entropy_dict,temp_dict)
     main_entropy = calculate_entropy(entropy_dict)
     print("main entropy: %f" % main_entropy)
-    
-    create_databases(copy.deepcopy(sorted_columns),databases,sorted_columns, main_entropy, "")
+
+    #split that databases to make a decision tree
+    id3_distributed(copy.deepcopy(sorted_columns),databases,sorted_columns, main_entropy, "")
  
