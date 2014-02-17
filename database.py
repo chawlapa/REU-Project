@@ -1,4 +1,7 @@
 #this will simulate the database connections
+#limit the split by 2 splits.  find the average of the dataset and split from there
+
+
 import math
 import sys
 import copy
@@ -308,6 +311,7 @@ def id3_distributed(criteria, databases, sorted_columns, main_entropy,path):#dat
     classes = temp_database.get_column_information(temp_database.get_num_of_columns() -1, criteria)
     if len(classes) < 2:
         print("Path: %s ANSWER: %s" % (path,get_answer(classes)))
+        #temp_database.print_data()
         return
     
     #get the best attribute to split off of
@@ -318,6 +322,7 @@ def id3_distributed(criteria, databases, sorted_columns, main_entropy,path):#dat
         #if there are no more splits to occure we return
         print("can't determine an answer off of the current seach criteria ", criteria)
         print("Path: %s" % path)
+        #temp_database.print_data()
         return
 
     temp_sorted_columns = copy.deepcopy(sorted_columns)
@@ -342,7 +347,7 @@ def id3_distributed(criteria, databases, sorted_columns, main_entropy,path):#dat
         
         print("When Column %s = %i" % (get_letter(best_column),i+1))
       
-        print("going to option %i on columns %s" %(i+1,get_letter(best_column)))
+        print("Going to attribute %i on columns %s" %(i+1,get_letter(best_column)))
         
         temp_criteria = copy.deepcopy(criteria)
         temp_criteria[best_column] = i+1
