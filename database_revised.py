@@ -402,6 +402,8 @@ def id3_distributed(criteria, databases, sorted_columns, main_entropy,path):#dat
         return
     
     classes = temp_database.get_sum_of_decisions(temp_database.get_num_of_columns() -1, criteria)
+    if classes == None:
+        print("ERROR THE CLASS IS NONE")
     if len(classes) < 2:
         print("Path: %s ANSWER: %s" % (path,get_answer(classes)))
         return
@@ -431,14 +433,12 @@ def id3_distributed(criteria, databases, sorted_columns, main_entropy,path):#dat
     #put the correct information in here
     temp_databases = populate_temp_databases(databases,temp_databases,best_column,criteria)
     for i in range(len(temp_databases)):
-        #print('\n--------------')
+        print('\n--------------')
 
         temp_path = copy.deepcopy(path)
         temp_path += ("Column: %s Attribute: %i -> " % (get_letter(best_column),i+1))
         
-        #print("When Column %s = %i" % (get_letter(best_column),i+1))
-      
-        #print("going to option %i on columns %s" %(i+1,get_letter(best_column)))
+        
         
         temp_criteria = copy.deepcopy(criteria)
         value = get_value_to_sort(databases,best_column)
@@ -450,6 +450,10 @@ def id3_distributed(criteria, databases, sorted_columns, main_entropy,path):#dat
             temp_criteria[best_column][0] = '>='
             temp_criteria[best_column][1] = value
         #print("temp_criteria: ",temp_criteria)
+        print("When Column %s = %s%f" % (get_letter(best_column),temp_criteria[best_column][0],temp_criteria[best_column][1]))
+      
+        print("going to option %i on columns %s" %(i+1,get_letter(best_column)))
+            
         id3_distributed(temp_criteria,databases,temp_sorted_columns,main_entropy,temp_path)
 
 '''  --------select_next_best_attribute--------
