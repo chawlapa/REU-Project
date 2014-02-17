@@ -42,22 +42,49 @@ class Database():
     '''
     def get_sum_of_column(self,column,criteria):
         keys = []
+        total = 0
+        records = 0
         for i in range(len(self.data)):
-            if self.data[i][column] not in keys:
-                keys.append(self.data[i][column])
-
+            #records += 1
+            #total += self.data[i][column]
+            keys.append(self.data[i][column])
+            #if self.data[i][column] not in keys:
+            #    keys.append(self.data[i][column])
+        keys.sort()
+        print("keys: ", keys)
+            
+        key1 = '<'# + str(keys[int(len(keys)/2)])
+        key2 = '>='# + str(keys[int(len(keys)/2)])
+        measuring_stick = keys[int(len(keys)/2)]
+        keys = []
+        keys.append(key1)
+        keys.append(key2)
+        print("keys: ", keys)
+        
         rDict = dict.fromkeys(keys)
         for i in range(len(self.data)):
             #check the criteria on the row
-            increment = True
+            greater_increment = True
+            less_increment = True
+            print("criteria: ",criteria)
             for j in range(len(criteria)):
-                if criteria[j] != -1 and criteria[j] != self.data[i][j]:
-                    increment = False
-            if increment:
-                if rDict.get(self.data[i][column]) == None:
-                    rDict[self.data[i][column]] = 1
+                print("Data: ",self.data[i][j] , " | measuring stick: ", measuring_stick)
+                if (criteria[j] != -1 and criteria[j] == '<') and self.data[i][j] < measuring_stick:
+                    print("   less_increment is true")
+                    greater_increment = False
+                elif (criteria[j] != -1 and criteria[j] == '>=') and self.data[i][j] >= measuring_stick:
+                    print("   greater_increment is true")
+                    less_increment = False
+            if less_increment:
+                if rDict.get(key1) == None:
+                    rDict[key1] = 1
                 else:
-                    rDict[self.data[i][column]] += 1
+                    rDict[key1] += 1
+            elif greater_increment:
+                if rDict.get(key2) == None:
+                    rDict[key2] = 1
+                else:
+                    rDict[key2] += 1
         return (rDict)
 
     '''  --------get_column_information--------
@@ -133,7 +160,7 @@ class Database():
                 if len(linearr) > 0:
                     for item in linearr:
                         
-                        temp.append(int(item.strip())) #get rid of whitespace
+                        temp.append(float(item.strip())) #get rid of whitespace
                     self.data.append(temp)
         except Exception as err:
             print(err)
@@ -368,9 +395,12 @@ def select_next_best_attribute(databases,selected_columns,main_entropy,criteria)
         
         for database in databases:
             temp_dict = database.get_column_information(i, criteria)
+            print("  temp_dict ", temp_dict)
             entropy_dict = update_dict(entropy_dict,temp_dict)
+            print("  entropy_dict ", entropy_dict)
         ratio = float(database.get_num_of_rows()/total_records)
         temp_entropy = calculate_entropy(entropy_dict)
+        print(temp_entropy)
         results.append(temp_entropy*ratio)
         weighted_avg = 0
         for items in results:
@@ -384,9 +414,9 @@ def select_next_best_attribute(databases,selected_columns,main_entropy,criteria)
 if __name__ == "__main__":
 
     #create the database objects
-    d1 = Database("d1","dataset1.txt")
-    d2 = Database("d2","dataset2.txt")
-    d3 = Database("d3","dataset3.txt")
+    d1 = Database("s1","seed1.txt")
+    d2 = Database("s2","seed2.txt")
+    d3 = Database("s3","seed3.txt")
 
     #show all of the information in the databases
     d1.print_data()
@@ -407,7 +437,9 @@ if __name__ == "__main__":
     for database in databases:
         total_records += database.get_num_of_rows()
         temp_dict = database.get_column_information(database.get_num_of_columns()-1,sorted_columns)
+        print("  temp_dict ", temp_dict)
         entropy_dict = update_dict(entropy_dict,temp_dict)
+        print("  entropy_dict ", entropy_dict)
     main_entropy = calculate_entropy(entropy_dict)
     print("main entropy: %f" % main_entropy)
 
