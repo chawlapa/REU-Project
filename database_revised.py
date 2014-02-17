@@ -66,25 +66,47 @@ class Database():
             #check the criteria on the row
             greater_increment = True
             less_increment = True
-            print("criteria: ",criteria)
+            #print("criteria: ",criteria)
+            #check to see if we have all -1s
+            all_wild = True
             for j in range(len(criteria)):
-                print("Data: ",self.data[i][j] , " | measuring stick: ", measuring_stick)
-                if (criteria[j] != -1 and criteria[j] == '<') and self.data[i][j] < measuring_stick:
-                    print("   less_increment is true")
-                    greater_increment = False
-                elif (criteria[j] != -1 and criteria[j] == '>=') and self.data[i][j] >= measuring_stick:
-                    print("   greater_increment is true")
-                    less_increment = False
-            if less_increment:
-                if rDict.get(key1) == None:
-                    rDict[key1] = 1
+                if criteria[j] != -1:
+                    all_wild = False
+            if not all_wild:
+                for j in range(len(criteria)):
+                    if criteria[j] != -1:
+                        if '<' in criteria[j] and self.data[i][j] < float(criteria[1:]):
+                            less_increment = False
+                        elif '>=' in criteria[j] and self.data[i][j] >= float(criteria[2:]):
+                            greater_increment = True
+                    #print("Data: ",self.data[i][j] , " | measuring stick: ", measuring_stick)
+                    #if (criteria[j] != -1 and criteria[j] == '<') and self.data[i][j] < measuring_stick:
+                        #print("   less_increment is true")
+                    #    greater_increment = False
+                    #elif (criteria[j] != -1 and criteria[j] == '>=') and self.data[i][j] >= measuring_stick:
+                        #print("   greater_increment is true")
+                    #    less_increment = False
+                if less_increment:
+                    if rDict.get(key1) == None:
+                        rDict[key1] = 1
+                    else:
+                        rDict[key1] += 1
+                elif greater_increment:
+                    if rDict.get(key2) == None:
+                        rDict[key2] = 1
+                    else:
+                        rDict[key2] += 1
+            else:
+                if self.data[i][column] < measuring_stick:
+                    if rDict.get(key1) == None:
+                        rDict[key1] = 1
+                    else:
+                        rDict[key1] += 1
                 else:
-                    rDict[key1] += 1
-            elif greater_increment:
-                if rDict.get(key2) == None:
-                    rDict[key2] = 1
-                else:
-                    rDict[key2] += 1
+                    if rDict.get(key2) == None:
+                        rDict[key2] = 1
+                    else:
+                        rDict[key2] += 1
         return (rDict)
 
     '''  --------get_column_information--------
