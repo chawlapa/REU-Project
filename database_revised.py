@@ -49,11 +49,18 @@ class Database():
         rDict = dict.fromkeys(keys)
         for i in range(len(self.data)):
             #check the criteria on the row
-            increment = True
+            add_data = True
             for j in range(len(criteria)):
-                if criteria[j][0] != -1 and criteria[j][0] != self.data[i][j]:
-                    increment = False
-            if increment:
+                if criteria[j][0] == -1:
+                    continue
+                elif criteria[j][0] == '<' and self.data[i][j] < criteria[j][1]:
+                    continue
+                elif criteria[j][0] == '>=' and self.data[i][j] >= criteria[j][1]:
+                    continue
+                else:
+                #if criteria[j][0] != -1 and criteria[j][0] != self.data[i][j]:
+                    add_data = False
+            if add_data:
                 if rDict.get(self.data[i][column]) == None:
                     rDict[self.data[i][column]] = 1
                 else:
@@ -67,21 +74,14 @@ class Database():
          Note: This should only be called from get_coloumn_information
     '''
     def get_sum_of_column(self,column,criteria):
-        #print("get sum of column: %i" % column)
-        #keys = []
-        #total = 0
-        #records = 0
-        
-        #print("keys: ", keys)
-            
         key1 = '<'
         key2 = '>='
-        #measuring_stick = keys[int(len(keys)/2)]
+        
         keys = []
         keys.append(key1)
         keys.append(key2)
         #print("keys: ", keys)
-
+        #print("column: %i" % column)
         values = []
         #print("criteria: ", criteria)
         for i in range(len(self.data)):
@@ -147,7 +147,7 @@ class Database():
          Inputs: column and search criteria
          Output: the length
     '''
-    def get_column_unique_ident(self,column,criteria):
+    def get_column_unique_ident_length(self,column,criteria):
         rDict = self.get_sum_of_column(column,criteria)
         return len(rDict)
 
@@ -237,6 +237,29 @@ class Database():
             print(item)
         print('------------')
 
+    def get_database_records(self, criteria):
+        #print(self.get_value_from_database(0,self.get_num_of_columns()-2))
+        #print(self.get_value_from_database(0,self.get_num_of_columns()-1))
+        decisions = self.get_sum_of_decisions(self.get_num_of_columns()-1,criteria)
+        #print ("decisions: ",decisions)
+        #get all unique decisions
+        #for row in range(self.get_num_of_rows()):
+        #    get_row_data = True
+        #    for j in range(len(criteria)):
+        #        if criteria[j][0] == -1:
+        #            continue
+        #        elif criteria[j][0] == '<' and self.get_value_from_database(row,j) < float(criteria[j][1]):
+        #            continue
+        #        elif criteria[j][0] == '>=' and self.get_value_from_database(row,j) >= float(criteria[j][1]):
+        #            continue
+        #        else:
+        #            get_row_data = False
+        #    if get_row_data:
+        #        if decisions[self.get_value_from_database(row,self.get_num_of_columns()-1)] == None:
+        #            decisions[self.get_value_from_database(row,self.get_num_of_columns()-1)] = 1
+        #        else:
+        #            decisions[self.get_value_from_database(row,self.get_num_of_columns()-1)] += 1
+        return decisions
 '''------END OF DATABASE CLASS-----------'''
 
 
@@ -301,6 +324,15 @@ def get_num_of_nodes(databases,column,criteria):
             #num_of_nodes = num
     #return num_of_nodes
 
+def ask_databases(databases,criteria):
+    #get the classes that are a result
+    classes = None
+    for database in databases:
+        
+        temp_classes = database.get_database_records(criteria)
+        classes = update_dict(classes,temp_classes)
+    return classes
+
 '''  --------populate_database--------
      Puts information into a database off of the search criteria
      Inputs: the databases and search criteria
@@ -316,9 +348,6 @@ def populate_database(databases,criteria):
             add_row = True
             
             for j in range(len(criteria)):
-                #print("criteria[j][0]: %s" % (criteria[j][0]))
-                #print("criteria[j][1]: ", criteria[j][1])
-                #print("value: %f" % database.get_value_from_database(row,j))
                 if criteria[j][0] == -1:
                     continue
                 elif criteria[j][0] == '<' and database.get_value_from_database(row,j) < float(criteria[j][1]):
@@ -327,10 +356,6 @@ def populate_database(databases,criteria):
                     continue
                 else:
                     add_row = False
-                #if criteria[j][0] != -1 or criteria[j][0] == '<' and database.get_value_from_database(row,j) >= criteria[j][1]:
-                #    bool1 = False
-                #elif criteria[j][0] != -1 or criteria[j][0] == '>=' and database.get_value_from_database(row,j) < criteria[j][1]:
-                #    bool2 = False
             if add_row:
                 temp_database.add_row(database.get_row(row))
     return temp_database
@@ -368,10 +393,9 @@ def populate_temp_databases(databases,temp_databases,column,criteria):
      Output: the answer
 '''
 def get_answer(dictionary):
-    if 1 in dictionary:
-        return "Yes"
-    elif 0 in dictionary:
-        return "No"
+    for key,value in dictionary.items():
+        if value != None:
+            return str(key)
     
 def get_value_to_sort(databases,column):
     master_keys = []
@@ -394,17 +418,31 @@ def id3_distributed(criteria, databases, sorted_columns, main_entropy,path):#dat
     #more to come
     classes = None
 
-    temp_database = populate_database(databases,criteria)
+    #temp_database = populate_database(databases,criteria)
+
+    #need to only get the result numbers and the classes
+    
+    classes = ask_databases(databases,criteria)
+    
+    totalResults = 0
+    temp = classes.items()
+    items_not_none = 0
+    for item in classes.items():
+        
+        if item[1] != None:
+            totalResults += item[1]
+            items_not_none += 1
+    
     #temp_database.print_data()
-    if temp_database.is_empty():
+    if totalResults == 0:
         print("There are no items in the database witht the currect search criteria ", criteria)
         print("Path: %s" % path)
         return
     
-    classes = temp_database.get_sum_of_decisions(temp_database.get_num_of_columns() -1, criteria)
+    #classes = temp_database.get_sum_of_decisions(temp_database.get_num_of_columns() -1, criteria)
     if classes == None:
         print("ERROR THE CLASS IS NONE")
-    if len(classes) < 2:
+    if items_not_none < 2:
         print("Path: %s ANSWER: %s" % (path,get_answer(classes)))
         return
     
@@ -442,14 +480,14 @@ def id3_distributed(criteria, databases, sorted_columns, main_entropy,path):#dat
         
         temp_criteria = copy.deepcopy(criteria)
         value = get_value_to_sort(databases,best_column)
-        #print("value: %f" % value)
+        
         if i == 0:
             temp_criteria[best_column][0] = '<'
             temp_criteria[best_column][1] = value
         elif i ==1:
             temp_criteria[best_column][0] = '>='
             temp_criteria[best_column][1] = value
-        #print("temp_criteria: ",temp_criteria)
+        
         print("When Column %s = %s%f" % (get_letter(best_column),temp_criteria[best_column][0],temp_criteria[best_column][1]))
       
         print("going to option %i on columns %s" %(i+1,get_letter(best_column)))
@@ -513,7 +551,7 @@ if __name__ == "__main__":
     for i in range(d1.get_num_of_columns()-1):
         sorted_columns.append(-1)
         criteria.append([-1,None])
-    
+    print(d1.get_num_of_columns()-1)
     #calculate entropy
     entropy_dict = None
     total_records = 0
